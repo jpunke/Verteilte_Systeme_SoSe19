@@ -64,8 +64,8 @@ int main(int argc, char *argv[]) {
 dg_echo: Lesen von Daten vom Socket und an den Client zuruecksenden 
 */
 void dg_echo(int sockfd) {
-	int alen, n;
-	char in[MAXLINE], out[MAXLINE+6], tmp[MAXLINE];
+	int alen, n, read;
+	char in[MAXLINE], out[MAXLINE+6], tmp[MAXLINE], msg[MAXLINE];
 	struct sockaddr_in cli_addr;
 	char * tok;
 	static int key= 1 ;
@@ -110,8 +110,14 @@ void dg_echo(int sockfd) {
 			}
 		}
 		else if(strncmp(tok,"HSOSSTP_GETXX",13)==0){
-			sprintf(out,"HSOSSTP_DATAX;<chunk no>;<actualchunksize>;<data>");
-			//fread(out, 1024, s->chunksize, file);
+			
+			read = fread(msg, 1,100, file);
+			if(read<=0){
+				sprintf(out,"HSOSSTP_DA;<chunk no>;<%d>;<%s>",read,msg);
+			}
+			else{
+				sprintf(out,"HSOSSTP_DATAX;<chunk no>;<%d>;<%s>",read,msg);
+			}
 			
 		}
 		else{

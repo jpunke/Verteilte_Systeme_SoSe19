@@ -1,0 +1,5 @@
+HSOSSTP_INITX;<100>;<Sample.txt>
+HSOSSTP_INITX;<100>;<Sample.txt>
+HSOSSTP_GETXX;<1>;<0>
+HSOSSTP_DATAX;<chunk no>;<100>;<Gen 1:1 Am Anfang schuf Gott Himmel und Erde.
+Gen 1:2 Und die Erde war wüst und leer, und es war fi>
