@@ -15,6 +15,7 @@
 
 #define SRV_PORT 8998
 #define MAXLINE 512
+#define DEBUG
 
 void dg_client(int, struct sockaddr*, int, char **);
 void err_abort(char *str);
@@ -72,18 +73,23 @@ void dg_client(int sockfd, struct sockaddr *srv_addr, int srv_len, char **argv){
 	char sid[15] = "HSOSSTP_SIDXX;";
 	char filename[256];
 	char chunksize[256];
-	char out[MAXLINE],in[MAXLINE+6];
+	char out[MAXLINE],in[MAXLINE+6], buffer[MAXLINE];
 	char *tok;
 	int chunkno =0;
 	int key = -1;
 	int check = 1;
 	
+	FILE *file;
+	FILE *log;
+	
+	log = fopen("log.txt","w");
 	
 	//Create INIT-Message
 	strcpy(out, init);
 	
 	sprintf(chunksize, "<%d>;",(atoi(argv[2])));
 	strcat(out,chunksize);
+	int csize = atoi(argv[2]);
 	
 	sprintf(filename,"<%s>",(argv[3]));
 	strcat(out, filename);
@@ -97,13 +103,24 @@ void dg_client(int sockfd, struct sockaddr *srv_addr, int srv_len, char **argv){
 	if(sendto(sockfd,out,n,0,srv_addr,srv_len)!=n){
 		err_abort("Fehler beim Schreiben des Sockets!");
 	}
+	#ifdef DEBUG
+	printf("out: %s\n",out);
+	#endif
+	fputs(out, log);
+	fputs("\n",log);
 	
 	// Antwort von Server auf INIT
 	n=recvfrom(sockfd,in,MAXLINE,0,(struct sockaddr *)NULL,(int *)NULL);
 	if(n<0){
 		err_abort("Fehler beim Lesen des Sockets!");
 	} 
+	
+	#ifdef DEBUG
 	printf("in: %s\n",in);
+	#endif
+	
+	fputs(out, log);
+	fputs("\n",log);
 	
 	tok = strtok(in, ";");
 	
@@ -116,22 +133,31 @@ void dg_client(int sockfd, struct sockaddr *srv_addr, int srv_len, char **argv){
 		key = atoi(tok);
 		sprintf(out,"HSOSSTP_GETXX;<%d>;<%d>",key,chunkno);
 		
+		#ifdef DEBUG
 		printf("out: %s\n",out);
-		
+		#endif
+		fputs(out, log);
+		fputs("\n",log);
+	
 		n = strlen(out);
 		
 		if(sendto(sockfd,out,n,0,srv_addr,srv_len)!=n){
 			err_abort("Fehler beim Schreiben des Sockets!");
 		}
 		
-		strcpy(in,"nischt");
 		n=recvfrom(sockfd,in,MAXLINE,0,(struct sockaddr *)NULL,(int *)NULL);
 		if(n<0){
 		err_abort("Fehler beim Lesen des Sockets!");
 		} 
-		
+		chunkno++;
+		#ifdef DEBUG
 		printf("in: %s\n",in);
+		#endif
+		fputs(in, log);
+		fputs("\n",log);
 	}
+	
+	
 	else if(strncmp(tok,"HSOSSTP_ERROR",13)==0){
 		tok = strtok(NULL, ">");
 		tok++;
@@ -144,39 +170,43 @@ void dg_client(int sockfd, struct sockaddr *srv_addr, int srv_len, char **argv){
 	
 	
 	//Iteratives Empfangen der Daten
+	
+	file = fopen("Ausgabe.txt","w");
+	
 	while(check){
 		
 		tok = strtok(in, ";");
-		printf("in: %s\n",in);
+		
 		if(strncmp(tok,"HSOSSTP_DATAX",13)==0){
-			check = 0;
-			printf("Daten empfangen - mehr oder weniger :)");
+			
+			tok = strtok(NULL, ";");
+			
+			tok = strtok(NULL, ";");
+			
+			tok = strtok(NULL, ">");
+			tok++;
+			tok[strlen(tok)-1]='\0';
+			
+			fwrite(tok, 1, csize, file); 
+			
+			chunkno++;
+			
+			sprintf(out,"HSOSSTP_GETXX;<%d>;<%d>",key,chunkno);
+			
+			if(sendto(sockfd,out,n,0,srv_addr,srv_len)!=n){
+			err_abort("Fehler beim Schreiben des Sockets!");
+			}
+			
+			
+			
+			recvfrom(sockfd,in,MAXLINE,0,(struct sockaddr *)NULL,(int *)NULL);
 		}
 		else{
 			printf("Daten nicht empfangen :'(");
 			check = 0;
-		}
-		/*
-		tok++;
-		tok[strlen(tok)-1]='\0';
-		key = atoi(tok);
-		sprintf(out,"HSOSSTP_GETXX;<%d>;<%d>",key,chunkno);
-		
-		printf("out: %s\n",out);
-		
-		n = strlen(out);
-		
-		if(sendto(sockfd,out,n,0,srv_addr,srv_len)!=n){
-			err_abort("Fehler beim Schreiben des Sockets!");
+			fclose(file);
 		}
 		
-		
-		n=recvfrom(sockfd,in,MAXLINE,0,(struct sockaddr *)NULL,(int *)NULL);
-		if(n<0){
-		err_abort("Fehler beim Lesen des Sockets!");
-		} 
-		*/
-		//printf("in: %s\n",in);
 	}
 
 	
