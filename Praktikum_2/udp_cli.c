@@ -29,12 +29,12 @@ int main(int argc, char *argv[]) {
 	char msg [MAXLINE] = "hallo\0";
 
 	// Argumente testen
-	if( argc != 4 ) {
+	if(argc != 4 ) {
 		err_abort("Syntaxfehler! Geben Sie die Parameter wie folgt an: \n Adresse des Servers   Chunkgroesse   Dateiname ");
 	}
 
 	// UDP Socket erzeugen
-	if( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		err_abort("Kann Stream-Socket nicht oeffnen!");
 	}
 
@@ -75,7 +75,7 @@ void dg_client(int sockfd, struct sockaddr *srv_addr, int srv_len, char **argv){
 	char chunksize[256];
 	char out[MAXLINE],in[MAXLINE+6], buffer[MAXLINE];
 	char *tok;
-	int chunkno =0;
+	int chunkno = 0;
 	int key = -1;
 	int check = 1;
 	
@@ -208,10 +208,7 @@ void dg_client(int sockfd, struct sockaddr *srv_addr, int srv_len, char **argv){
 		}
 		
 	}
-
-	
-	
-
+		
 }
 
 /*
