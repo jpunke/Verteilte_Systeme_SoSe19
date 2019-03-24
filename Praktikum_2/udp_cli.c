@@ -29,12 +29,12 @@ int main(int argc, char *argv[]) {
 	char msg [MAXLINE] = "hallo\0";
 
 	// Argumente testen
-	if( argc != 4 ) {
+	if(argc != 4 ) {
 		err_abort("Syntaxfehler! Geben Sie die Parameter wie folgt an: \n Adresse des Servers   Chunkgroesse   Dateiname ");
 	}
 
 	// UDP Socket erzeugen
-	if( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		err_abort("Kann Stream-Socket nicht oeffnen!");
 	}
 
@@ -75,7 +75,7 @@ void dg_client(int sockfd, struct sockaddr *srv_addr, int srv_len, char **argv){
 	char chunksize[256];
 	char out[MAXLINE],in[MAXLINE+6], buffer[MAXLINE];
 	char *tok;
-	int chunkno =0;
+	int chunkno = 0;
 	int key = -1;
 	int check = 1;
 	
@@ -87,17 +87,16 @@ void dg_client(int sockfd, struct sockaddr *srv_addr, int srv_len, char **argv){
 	//Create INIT-Message
 	strcpy(out, init);
 	
-	sprintf(chunksize, "<%d>;",(atoi(argv[2])));
+	sprintf(chunksize, "%d;",(atoi(argv[2])));
 	strcat(out,chunksize);
 	int csize = atoi(argv[2]);
 	
-	sprintf(filename,"<%s>",(argv[3]));
+	sprintf(filename,"%s",(argv[3]));
 	strcat(out, filename);
 
 	n = strlen(out);
 	//out[n]='\0';
 	
-	printf("out: %s\n",out);
 	
 	// INIT-Message an Server senden
 	if(sendto(sockfd,out,n,0,srv_addr,srv_len)!=n){
@@ -128,10 +127,8 @@ void dg_client(int sockfd, struct sockaddr *srv_addr, int srv_len, char **argv){
 	if(strncmp(tok,"HSOSSTP_SIDXX",13)==0){
 		
 		tok = strtok(NULL, ";");
-		tok++;
-		tok[strlen(tok)-1]='\0';
 		key = atoi(tok);
-		sprintf(out,"HSOSSTP_GETXX;<%d>;<%d>",key,chunkno);
+		sprintf(out,"HSOSSTP_GETXX;%d;%d",key,chunkno);
 		
 		#ifdef DEBUG
 		printf("out: %s\n",out);
@@ -208,10 +205,7 @@ void dg_client(int sockfd, struct sockaddr *srv_addr, int srv_len, char **argv){
 		}
 		
 	}
-
-	
-	
-
+		
 }
 
 /*
